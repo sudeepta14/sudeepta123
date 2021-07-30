@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
+    
     <head>
         <title>Movies Visualization</title>
         <meta charset="UTF-8">
@@ -9,6 +9,7 @@
         <meta name="viewport" content="initial-scale = 1.0, maximum-scale = 1.0, user-scalable = no, width = device-width">
         
         <!-- Foundations 5 Stylesheet-->
+	<script src="https://d3js.org/d3.v5.min.js"></script>
         <link href="css/foundation.css" type="text/css" rel="stylesheet" media="screen" />
         
         <!-- Normalize-->
