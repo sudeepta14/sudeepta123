@@ -316,8 +316,7 @@ Irish postal stamps and BOURBON stains.</h5>
                                         <span>...</span>
                                    </div>
                                    <div class="memberInfo">
-                                       <h5>Chuppy first arrived at our doorstep in a giant wooden mail crate covered in 
-Irish postal stamps and BOURBON stains.</h5>
+                                       <h5>Chuppy first arrived at our doorstep in a giant wooden mail crate covered in Irish postal stamps and BOURBON stains</h5>
                                        
                                        <p>
                                           Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
@@ -892,243 +891,199 @@ Irish postal stamps and BOURBON stains.</h5>
        </footer>
        <!-- End of Footer -->
        <script>
-        var currentPage = "chart1.html";
-        var nextPage = "chart2.html";
-        var previousPage = "chart1.html";
-        var summaryPage = "chart1.html";
-        var genresbyPage = "chart2.html";
-        var genresdetailPage = "chart3.html";
+		var currentPage = "chart1.html";
+		var nextPage = "chart2.html";
+		var previousPage = "chart1.html";
+		var summaryPage = "chart1.html";
+		var genresbyPage = "chart2.html";
+		var genresdetailPage = "chart3.html";
   
-        function navigate(action) {
-          if (action == "next") {
-            dest = nextPage;
-          } else if (action == "previous") {
-            dest = previousPage;
-          } else if (action == "summary") {
-            dest = summaryPage;
-          } else if (action == "genresby") {
-            dest = genresbyPage;
-          } else if (action == "genresdetail") {
-            dest = genresdetailPage;
-          } else dest = "#";
-          window.location = dest;
-        }
+		function navigate(action) {
+		  if (action == "next") {
+		    dest = nextPage;
+		  } else if (action == "previous") {
+		    dest = previousPage;
+		  } else if (action == "summary") {
+		    dest = summaryPage;
+		  } else if (action == "genresby") {
+		    dest = genresbyPage;
+		  } else if (action == "genresdetail") {
+		    dest = genresdetailPage;
+		  } else dest = "#";
+		  window.location = dest;
+		}
   
-        async function init() {
-          var margin = {
-            top: 50,
-            right: 50,
-            bottom: 50,
-            left: 50,
-          };
-          var width = 1000;
-          var height = 500;
-          var xwidth = width / 2 - 2 * margin.right - 2 * margin.left;
-          var yheight = height - 2 * margin.top - 2 * margin.bottom;
-          const addfactor = 10;
-          const data = await d3.csv("data/input_data.csv");
+		async function init() {
+		  var margin = {
+		    top: 50,
+		    right: 50,
+		    bottom: 50,
+		    left: 50,
+		  };
+		  var width = 1000;
+		  var height = 500;
+		  var xwidth = width / 2 - 2 * margin.right - 2 * margin.left;
+		  var yheight = height - 2 * margin.top - 2 * margin.bottom;
+		  const addfactor = 10;
+		  const data = await d3.csv("data/input_data.csv");
+
+		  function loadPage(id) {
+		    dest = "chart2.html" + "?origin=" + id;
+		    window.location = dest;
+		  }
+
+		  filteredData = data.filter(function(d){return d.IMDb >= 7;});
+		  netflixTotal = d3.sum(
+		    filteredData.filter(d => d.Netflix == 1),
+		    d => d.Netflix
+		  )
+		  primeVideoTotal = d3.sum(
+		    filteredData.filter(d => d.PrimeVideo == 1),
+		    d => d.PrimeVideo
+		  )
+		  huluTotal = d3.sum(
+		    filteredData.filter(d => d.Hulu == 1),
+		    d => d.Hulu
+		  )
+		  disneyTotal = d3.sum(
+		    filteredData.filter(d => d.Disney == 1),
+		    d => d.Disney
+		  )
   
-          function loadPage(id) {
-            dest = "chart2.html" + "?origin=" + id;
-            //console.log(dest);
-            window.location = dest;
-          }
+		  var streamingServicesMap = {
+		    "Netflix":netflixTotal,
+		    "Prime Video":primeVideoTotal,
+		    "Hulu":huluTotal,
+		    "DisneyPlus":disneyTotal
+		  };
   
-          ///////////////////////////////////////////////////// Bar Chart ///////////////////////////////////////
+       		  var graphdata = d3.entries(streamingServicesMap);
+
+		  graphdata.sort(function (a, b) {
+		    return d3.descending(+a.value, +b.value);
+		  });
+
+		  var xs = d3
+		    .scaleBand()
+		    .domain(
+		      graphdata.map(function (d) {
+			return d.key;
+		      })
+		    )
+		    .range([0, xwidth]);
   
-  filteredData = data.filter(function(d){return d.IMDb >= 7;});
-  //console.log('filteredData', filteredData);
+		  var ys = d3
+		    .scaleLinear()
+		    .domain([
+		      d3.min(graphdata, function (d) {
+			return d.value;
+		      }),
+		      d3.max(graphdata, function (d) {
+			return d.value;
+		      }),
+		    ])
+		    .range([yheight, 0]);
   
-  netflixTotal = d3.sum(
-    filteredData.filter(d => d.Netflix == 1),
-    d => d.Netflix
-  )
-  console.log('netflixTotal', netflixTotal);
+          	  var colorrn = d3.scaleOrdinal(d3.schemeCategory10); //Color should be same as pie chart
   
-  primeVideoTotal = d3.sum(
-    filteredData.filter(d => d.PrimeVideo == 1),
-    d => d.PrimeVideo
-  )
-  console.log('primeVideoTotal', primeVideoTotal);
+
+		  var tooltip = d3
+		    .select("body")
+		    .append("div")
+		    .attr("class", "tooltip")
+		    .style("position", "absolute")
+		    .style("z-index", 10)
+		    .style("visibility", "hidden")
+		    .text("Simple text");
+
+
+		  d3.select("svg")
+		    .attr("width", width)
+		    .attr("height", height)
+		    .append("g")
+		    .attr(
+		      "transform",
+		      "translate(" + margin.right + "," + margin.bottom + ")"
+		    )
+		    .selectAll("rect")
+		    .data(graphdata)
+		    .enter()
+		    .append("rect")
+		    .attr("data-html", "true")
+		    .attr("x", function (d, i) {
+		      return xs(d.key);
+		    })
+		    .attr("y", function (d) {
+		      return ys(d.value);
+		    })
+		    .attr("width", xs.bandwidth())
+		    .attr("height", function (d) {
+		      return addfactor + (yheight - ys(d.value));
+		    })
+		    .attr("fill", function (d,i) {
+		      console.log('d', d)
+		      if(getKey(i) == "Netflix") { console.log("Netflix"); return "#E50914";}
+		      else if(getKey(i) == "Prime Video") { console.log("Prime Video", getKey(i)); return "#00A8E1";}
+		      else if(getKey(i) == "Hulu") { console.log("Hulu"); return "#66aa33";}
+		      else if(getKey(i) == "DisneyPlus") { console.log("DisneyPlus"); return "#006e99";}
+		      else return colorOrd(i);
+		    })
+		    .text((d) => d.value)
+		    .on("mouseover", (d) => {
+		      var textval = "Total genres: " + totalGenres;
+		      textval = textval + "</br>" + (d.key + " : " + d.value.toFixed(0) + ' Genres');
+		      tooltip.html(textval);
+		      return tooltip.style("visibility", "visible");
+		    })
+		    .on("mousemove", function () {
+		      return tooltip
+			.style("top", d3.event.pageY - 10 + "px")
+			.style("left", d3.event.pageX + 10 + "px");
+		    })
+		    .on("mouseout", () => tooltip.style("visibility", "hidden"))
+		    .on("click", (d) => {
+		      loadPage(d.key);
+		    });
   
-  huluTotal = d3.sum(
-    filteredData.filter(d => d.Hulu == 1),
-    d => d.Hulu
-  )
-  console.log('huluTotal', huluTotal);
-  
-  
-  disneyTotal = d3.sum(
-    filteredData.filter(d => d.Disney == 1),
-    d => d.Disney
-  )
-  console.log('disneyTotal', disneyTotal);
-  
-  var streamingServicesMap = {
-    "Netflix":netflixTotal,
-    "Prime Video":primeVideoTotal,
-    "Hulu":huluTotal,
-    "DisneyPlus":disneyTotal
-  };
-  console.log('streamingServicesMap', streamingServicesMap);
-  
-       var graphdata = d3.entries(streamingServicesMap);
-  //console.log('data1', data1);
-  
-            /*var data1 = d3
-            .nest()
-            .key(function (d) {
-              return d.Netflix == "" ? "None" : d.Netflix;
-            })
-            .rollup(function (d) {
-              return d3.sum(d, function (g) {
-                return 1;
-              });
-            })
-            .entries(data);
-            console.log('data1', data1);*/
-  
-  /*        var data1 = d3
-            .nest()
-            .key(function (d) {
-              return d.Genre == "" ? "None" : d.Genre;
-            })
-            .rollup(function (d) {
-              return d3.sum(d, function (g) {
-                return 1;
-              });
-            })
-            .entries(data);
-  */
-          graphdata.sort(function (a, b) {
-            return d3.descending(+a.value, +b.value);
-          });
-          //var graphdata = data1.slice(0, 10); // Top 20 elements
-           //console.log('data1', data1);
-  
-          //X-scale
-          var xs = d3
-            .scaleBand()
-            .domain(
-              graphdata.map(function (d) {
-                return d.key;
-              })
-            )
-            .range([0, xwidth]);
-  
-          //y-scale
-          var ys = d3
-            .scaleLinear()
-            .domain([
-              d3.min(graphdata, function (d) {
-                return d.value;
-              }),
-              d3.max(graphdata, function (d) {
-                return d.value;
-              }),
-            ])
-            .range([yheight, 0]);
-  
-          var colorrn = d3.scaleOrdinal(d3.schemeCategory10); //Color should be same as pie chart
-  
-          // Tool Tip mouse hover
-          var tooltip = d3
-            .select("body")
-            .append("div")
-            .attr("class", "tooltip")
-            .style("position", "absolute")
-            .style("z-index", 10)
-            .style("visibility", "hidden")
-            .text("Simple text");
-  
-          // Chart
-          d3.select("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .append("g")
-            .attr(
-              "transform",
-              "translate(" + margin.right + "," + margin.bottom + ")"
-            )
-            .selectAll("rect")
-            .data(graphdata)
-            .enter()
-            .append("rect")
-            .attr("data-html", "true")
-            .attr("x", function (d, i) {
-              return xs(d.key);
-            })
-            .attr("y", function (d) {
-              return ys(d.value);
-            })
-            .attr("width", xs.bandwidth())
-            .attr("height", function (d) {
-              return addfactor + (yheight - ys(d.value));
-            })
-            .attr("fill", function (d,i) {
-              console.log('d', d)
-              if(getKey(i) == "Netflix") { console.log("Netflix"); return "#E50914";}
-              else if(getKey(i) == "Prime Video") { console.log("Prime Video", getKey(i)); return "#00A8E1";}
-              else if(getKey(i) == "Hulu") { console.log("Hulu"); return "#66aa33";}
-              else if(getKey(i) == "DisneyPlus") { console.log("DisneyPlus"); return "#006e99";}
-              else return colorOrd(i);
-            })
-            .text((d) => d.value)
-            .on("mouseover", (d) => {
-              var textval = "Total genres: " + totalGenres;
-              textval = textval + "</br>" + (d.key + " : " + d.value.toFixed(0) + ' Genres');
-              tooltip.html(textval);
-              return tooltip.style("visibility", "visible");
-            })
-            .on("mousemove", function () {
-              return tooltip
-                .style("top", d3.event.pageY - 10 + "px")
-                .style("left", d3.event.pageX + 10 + "px");
-            })
-            .on("mouseout", () => tooltip.style("visibility", "hidden"))
-            .on("click", (d) => {
-              loadPage(d.key);
-            });
-  
-          //y - axis
-          d3.select("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .append("g")
-            .attr(
-              "transform",
-              "translate(" +
-                margin.right +
-                "," +
-                (addfactor + margin.bottom) +
-                ")"
-            )
-            .call(
-              d3
-                .axisLeft(ys)
-                .ticks(7)
-                //.tickFormat(d3.format("~s"))
-            );
-  
-          // text label for the y axis
-          d3.select("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .append("g")
-            .attr(
-              "transform",
-              "translate(" + margin.right + "," + margin.bottom + ")"
-            )
-            .append("text")
-            .attr("transform", "rotate(-90)")
-            .attr("y", 0 - margin.left)
-            .attr("x", 0 - yheight / 2)
-            .attr("dy", ".75em")
-            .style("text-anchor", "middle")
-            .style("font", "Arial")
-            .style("font-size", "11px")
-            .style("font-weight", "bold")
-            .text("No of Movies");
+
+			  d3.select("svg")
+			    .attr("width", width)
+			    .attr("height", height)
+			    .append("g")
+			    .attr(
+			      "transform",
+			      "translate(" +
+				margin.right +
+				"," +
+				(addfactor + margin.bottom) +
+				")"
+			    )
+			    .call(
+			      d3
+				.axisLeft(ys)
+				.ticks(7)
+				//.tickFormat(d3.format("~s"))
+			    );
+
+			  // text label for the y axis
+			  d3.select("svg")
+			    .attr("width", width)
+			    .attr("height", height)
+			    .append("g")
+			    .attr(
+			      "transform",
+			      "translate(" + margin.right + "," + margin.bottom + ")"
+			    )
+			    .append("text")
+			    .attr("transform", "rotate(-90)")
+			    .attr("y", 0 - margin.left)
+			    .attr("x", 0 - yheight / 2)
+			    .attr("dy", ".75em")
+			    .style("text-anchor", "middle")
+			    .style("font", "Arial")
+			    .style("font-size", "11px")
+			    .style("font-weight", "bold")
+			    .text("No of Movies");
   
           // x- axis
           d3.select("svg")
