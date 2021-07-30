@@ -891,7 +891,7 @@ Irish postal stamps and BOURBON stains.</h5>
        </footer>
        <!-- End of Footer -->
        <script>
-		var currentPage = "chart1.html";
+		var currentPage = "index.html";
 		var nextPage = "chart2.html";
 		var previousPage = "chart1.html";
 		var summaryPage = "chart1.html";
